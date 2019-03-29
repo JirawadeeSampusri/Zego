@@ -92,7 +92,6 @@ class ZegoDotWindow(arcade.Window):
         """ Set up the game and initialize the variables. """
 
         self.background = arcade.load_texture("images/background1.jpg")
-
         self.player_list = arcade.SpriteList()
         self.coin_sprite_list = arcade.SpriteList()
 
