@@ -9,7 +9,7 @@ COIN_COUNT = 50
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Sprite Collect Coins Moving Down Example"
+SCREEN_TITLE = "Drawing Text Example"
 
 MOVEMENT_SPEED = 5
 
@@ -66,19 +66,21 @@ class Coin(arcade.Sprite):
 
 class ZegoDotWindow(arcade.Window):
     def __init__(self, width, height, title):
-        """
-        Initializer
-        """
         super().__init__(width, height, title)
 
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
+ 
+        arcade.set_background_color(arcade.color.BABY_BLUE_EYES)
+        self.text_angle = 0
+        self.time_elapsed = 0.0
 
         self.background = None
 
         self.player_list = None
         self.player_sprite = None
         self.coin_sprite_list = None
+        
 
         self.player_sprite = None
         self.score = 0
@@ -86,7 +88,7 @@ class ZegoDotWindow(arcade.Window):
 
         self.set_mouse_visible(False)
 
-        arcade.set_background_color(arcade.color.BABY_BLUE_EYES)
+        
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -122,20 +124,27 @@ class ZegoDotWindow(arcade.Window):
 
         arcade.start_render()
 
+        start_y = 200
+        start_x = 20
+        arcade.draw_point(start_x, start_y, arcade.color.BLUE, 5)
         arcade.draw_texture_rectangle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
                                       SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
 
         self.coin_sprite_list.draw()
         self.player_list.draw()
-
+        arcade.draw_text("Welcome to Zego", start_x, start_y,
+                         arcade.color.BLACK, 14, width=200, align="center",
+                         anchor_x="center", anchor_y="center", rotation=90.0)
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
 
     def update(self, delta_time):
         """ Movement and game logic """
-
         self.player_list.update()
         self.coin_sprite_list.update()
+
+        self.text_angle += 1
+        self.time_elapsed += delta_time
 
         hit_list = arcade.check_for_collision_with_list(self.player_sprite,
                                                         self.coin_sprite_list)
@@ -149,11 +158,7 @@ class ZegoDotWindow(arcade.Window):
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed. """
 
-        if key == arcade.key.UP:
-            self.player_sprite.change_y = MOVEMENT_SPEED
-        elif key == arcade.key.DOWN:
-            self.player_sprite.change_y = -MOVEMENT_SPEED
-        elif key == arcade.key.LEFT:
+        if key == arcade.key.LEFT:
             self.player_sprite.change_x = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT:
             self.player_sprite.change_x = MOVEMENT_SPEED
