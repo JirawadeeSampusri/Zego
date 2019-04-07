@@ -71,7 +71,7 @@ class ZegoDotWindow(arcade.Window):
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
  
-        arcade.set_background_color(arcade.color.BABY_BLUE_EYES)
+        
         self.text_angle = 0
         self.time_elapsed = 0.0
 
@@ -87,6 +87,8 @@ class ZegoDotWindow(arcade.Window):
         self.score_text = None
 
         self.set_mouse_visible(False)
+
+        arcade.set_background_color(arcade.color.BABY_BLUE_EYES)
 
         
 
