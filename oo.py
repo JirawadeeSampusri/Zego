@@ -202,12 +202,11 @@ class ZegoDotWindow(arcade.Window):
         angle = math.atan2(y_diff, x_diff)
 
        
-        bullet.angle = math.degrees(angle)
-        print(f"Bullet angle: {bullet.angle:.2f}")
+        bullet.angle = 90
 
        
-        bullet.change_x = math.cos(angle) * BULLET_SPEED
-        bullet.change_y = math.sin(angle) * BULLET_SPEED
+        
+        bullet.change_y = BULLET_SPEED
 
         # Add the bullet to the appropriate lists
         self.bullet_list.append(bullet)
