@@ -115,14 +115,15 @@ class ZegoDotWindow(arcade.Window):
         enemy = arcade.Sprite("images/enermy.png", 0.5)
         enemy.center_x = 120
         enemy.center_y = SCREEN_HEIGHT - enemy.height
-        enemy.angle = 180
+        enemy.angle = 165
         self.enemy_list.append(enemy)
+
 
         # Add top-right enemy ship
         enemy = arcade.Sprite("images/enermy.png", 0.5)
         enemy.center_x = SCREEN_WIDTH - 120
         enemy.center_y = SCREEN_HEIGHT - enemy.height
-        enemy.angle = 160
+        enemy.angle = 165
         self.enemy_list.append(enemy)
 
         for i in range(COIN_COUNT):
@@ -175,6 +176,16 @@ class ZegoDotWindow(arcade.Window):
 
         hit_list = arcade.check_for_collision_with_list(self.player_sprite,
                                                         self.coin_list)
+        if self.enemy_list[0].center_x>=0:
+            self.enemy_list[0].center_x-=1
+        else:
+            self.enemy_list[0].center_x = 800
+        
+        if self.enemy_list[1].center_x>=0:
+            self.enemy_list[1].center_x-=2
+        else:
+            self.enemy_list[1].center_x = 800
+        
 
         for bullet in self.bullet_list:
 
