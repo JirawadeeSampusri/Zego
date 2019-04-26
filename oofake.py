@@ -11,9 +11,9 @@ COIN_COUNT = 30
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Sprites and Bullets Enemy Aimed Example"
+SCREEN_TITLE = "Sprites and Bullets Aimed Example"
 
-BULLET_SPEED = 5
+BULLET_SPEED = 7
 # MOVEMENT_SPEED = 5
 window = None
 
@@ -75,20 +75,18 @@ class ZegoDotWindow(arcade.Window):
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
  
-        
+        self.frame_count = 0
         self.text_angle = 0
         self.time_elapsed = 0.0
 
         self.background = None
 
-        self.frame_count = 0
-
-        self.enemy_list = None
         self.player_list = None
         self.coin_list = None
         self.bullet_list = None
+        self.enemy_list = None
         self.player = None
-    
+
         self.player_sprite = None
         self.score = 0
         self.score_text = None
@@ -101,10 +99,10 @@ class ZegoDotWindow(arcade.Window):
         """ Set up the game and initialize the variables. """
 
         self.background = arcade.load_texture("images/background1.jpg")
-        self.enemy_list = arcade.SpriteList()
-        self.bullet_list = arcade.SpriteList()
         self.player_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
+        self.bullet_list = arcade.SpriteList()
+        self.enemy_list = arcade.SpriteList()
 
         self.score = 0
 
@@ -113,19 +111,19 @@ class ZegoDotWindow(arcade.Window):
         self.player_sprite.center_y = 70
         self.player_list.append(self.player_sprite)
 
-        enemy = arcade.Sprite("images/worm1.png", 0.5)
+        # Add top-left enemy ship
+        enemy = arcade.Sprite("images/enermy.png", 0.5)
         enemy.center_x = 120
         enemy.center_y = SCREEN_HEIGHT - enemy.height
         enemy.angle = 180
         self.enemy_list.append(enemy)
 
-        enemy = arcade.Sprite("images/worm1", 0.5)
+        # Add top-right enemy ship
+        enemy = arcade.Sprite("images/enermy.png", 0.5)
         enemy.center_x = SCREEN_WIDTH - 120
         enemy.center_y = SCREEN_HEIGHT - enemy.height
-        enemy.angle = 180
+        enemy.angle = 160
         self.enemy_list.append(enemy)
-
-
 
         for i in range(COIN_COUNT):
 
@@ -156,8 +154,8 @@ class ZegoDotWindow(arcade.Window):
         arcade.draw_texture_rectangle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
                                       SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
 
-        self.coin_list.draw()
         self.enemy_list.draw()
+        self.coin_list.draw()
         self.bullet_list.draw()
         self.player_list.draw()
         arcade.draw_text("Welcome to Zego", start_x, start_y,
@@ -168,9 +166,6 @@ class ZegoDotWindow(arcade.Window):
 
     def update(self, delta_time):
         """ Movement and game logic """
-
-        self.frame_count += 1
-
         self.player_list.update()
         self.coin_list.update()
         self.bullet_list.update()
@@ -198,47 +193,17 @@ class ZegoDotWindow(arcade.Window):
             # If the bullet flies off-screen, remove it.
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.kill()
- 
-        
+
+         # Loop through each enemy that we have
         for enemy in self.enemy_list:
 
-            # First, calculate the angle to the player. We could do this
-            # only when the bullet fires, but in this case we will rotate
-            # the enemy to face the player each frame, so we'll do this
-            # each frame.
-
-            # Position the start at the enemy's current location
-            start_x = enemy.center_x
-            start_y = enemy.center_y
-
-            # Get the destination location for the bullet
-            dest_x = self.player.center_x
-            dest_y = self.player.center_y
-
-            # Do math to calculate how to get the bullet to the destination.
-            # Calculation the angle in radians between the start points
-            # and end points. This is the angle the bullet will travel.
-            x_diff = dest_x - start_x
-            y_diff = dest_y - start_y
-            angle = math.atan2(y_diff, x_diff)
-
-            # Set the enemy to face the player.
-            enemy.angle = math.degrees(angle)-90
-
-            # Shoot every 60 frames change of shooting each frame
-            if self.frame_count % 60 == 0:
-                bullet = arcade.Sprite("images/laser1.png")
-                bullet.center_x = start_x
-                bullet.center_y = start_y
-
-                # Angle the bullet sprite
-                bullet.angle = math.degrees(angle)
-
-                # Taking into account the angle, calculate our change_x
-                # and change_y. Velocity is how fast the bullet travels.
-                bullet.change_x = math.cos(angle) * BULLET_SPEED
-                bullet.change_y = math.sin(angle) * BULLET_SPEED
-
+            # Have a random 1 in 200 change of shooting each frame
+            if random.randrange(100) == 0:
+                bullet = arcade.Sprite("images/laser4.png")
+                bullet.center_x = enemy.center_x
+                bullet.angle = -90
+                bullet.top = enemy.bottom
+                bullet.change_y = -2
                 self.bullet_list.append(bullet)
 
         # Get rid of the bullet when it flies off-screen
@@ -247,8 +212,6 @@ class ZegoDotWindow(arcade.Window):
                 bullet.kill()
 
         self.bullet_list.update()
-
-
 
     def on_mouse_motion(self, x, y, dx, dy):
         """
@@ -261,7 +224,7 @@ class ZegoDotWindow(arcade.Window):
         Called whenever the mouse moves.
         """
         # Create a bullet
-        bullet = arcade.Sprite("images/laser3.png", SPRITE_SCALING_LASER)
+        bullet = arcade.Sprite("images/bluelaser2.png", SPRITE_SCALING_LASER)
 
         start_x = self.player_sprite.center_x
         start_y = self.player_sprite.center_y
@@ -276,12 +239,10 @@ class ZegoDotWindow(arcade.Window):
         angle = math.atan2(y_diff, x_diff)
 
        
-        bullet.angle = math.degrees(angle)
-        print(f"Bullet angle: {bullet.angle:.2f}")
-
+        bullet.angle = 90
        
-        bullet.change_x = math.cos(angle) * BULLET_SPEED
-        bullet.change_y = math.sin(angle) * BULLET_SPEED
+        
+        bullet.change_y = BULLET_SPEED
 
         # Add the bullet to the appropriate lists
         self.bullet_list.append(bullet)
