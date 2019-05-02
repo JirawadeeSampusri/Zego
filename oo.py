@@ -13,7 +13,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Sprites and Bullets Aimed Example"
 
-BULLET_SPEED = 5
+BULLET_SPEED = 7
 # MOVEMENT_SPEED = 5
 window = None
 
@@ -75,7 +75,7 @@ class ZegoDotWindow(arcade.Window):
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
  
-        
+        self.frame_count = 0
         self.text_angle = 0
         self.time_elapsed = 0.0
 
@@ -84,7 +84,9 @@ class ZegoDotWindow(arcade.Window):
         self.player_list = None
         self.coin_list = None
         self.bullet_list = None
-    
+        self.enemy_list = None
+        self.player = None
+
         self.player_sprite = None
         self.score = 0
         self.score_text = None
@@ -100,6 +102,7 @@ class ZegoDotWindow(arcade.Window):
         self.player_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
+        self.enemy_list = arcade.SpriteList()
 
         self.score = 0
 
@@ -107,6 +110,21 @@ class ZegoDotWindow(arcade.Window):
         self.player_sprite.center_x = 50
         self.player_sprite.center_y = 70
         self.player_list.append(self.player_sprite)
+
+        # Add top-left enemy ship
+        enemy = arcade.Sprite("images/enermy.png", 0.5)
+        enemy.center_x = 120
+        enemy.center_y = SCREEN_HEIGHT - enemy.height
+        enemy.angle = 165
+        self.enemy_list.append(enemy)
+
+
+        # Add top-right enemy ship
+        enemy = arcade.Sprite("images/enermy.png", 0.5)
+        enemy.center_x = SCREEN_WIDTH - 120
+        enemy.center_y = SCREEN_HEIGHT - enemy.height
+        enemy.angle = 165
+        self.enemy_list.append(enemy)
 
         for i in range(COIN_COUNT):
 
@@ -137,6 +155,7 @@ class ZegoDotWindow(arcade.Window):
         arcade.draw_texture_rectangle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
                                       SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
 
+        self.enemy_list.draw()
         self.coin_list.draw()
         self.bullet_list.draw()
         self.player_list.draw()
@@ -157,7 +176,16 @@ class ZegoDotWindow(arcade.Window):
 
         hit_list = arcade.check_for_collision_with_list(self.player_sprite,
                                                         self.coin_list)
-
+        if self.enemy_list[0].center_x>=0:
+            self.enemy_list[0].center_x-=1
+        else:
+            self.enemy_list[0].center_x = 800
+        
+        if self.enemy_list[1].center_x>=0:
+            self.enemy_list[1].center_x-=2
+        else:
+            self.enemy_list[1].center_x = 800
+        
         for bullet in self.bullet_list:
 
             # Check this bullet to see if it hit a coin
@@ -176,6 +204,25 @@ class ZegoDotWindow(arcade.Window):
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.kill()
 
+         # Loop through each enemy that we have
+        for enemy in self.enemy_list:
+
+            # Have a random 1 in 200 change of shooting each frame
+            if random.randrange(100) == 0:
+                bullet = arcade.Sprite("images/laser4.png")
+                bullet.center_x = enemy.center_x
+                bullet.angle = -90
+                bullet.top = enemy.bottom
+                bullet.change_y = -2
+                self.bullet_list.append(bullet)
+
+        # Get rid of the bullet when it flies off-screen
+        for bullet in self.bullet_list:
+            if bullet.top < 0:
+                bullet.kill()
+
+        self.bullet_list.update()
+
     def on_mouse_motion(self, x, y, dx, dy):
         """
         Called whenever the mouse moves.
@@ -187,7 +234,7 @@ class ZegoDotWindow(arcade.Window):
         Called whenever the mouse moves.
         """
         # Create a bullet
-        bullet = arcade.Sprite("images/laser3.png", SPRITE_SCALING_LASER)
+        bullet = arcade.Sprite("images/bluelaser2.png", SPRITE_SCALING_LASER)
 
         start_x = self.player_sprite.center_x
         start_y = self.player_sprite.center_y
@@ -203,7 +250,6 @@ class ZegoDotWindow(arcade.Window):
 
        
         bullet.angle = 90
-
        
         
         bullet.change_y = BULLET_SPEED

@@ -2,7 +2,8 @@ import random
 import arcade
 import math
 import os
-from Zego_models import World
+
+# from Zego_models import World
 
 SPRITE_SCALING_PLAYER = 0.8
 SPRITE_SCALING_COIN = 0.5
@@ -11,11 +12,35 @@ COIN_COUNT = 30
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Sprites and Bullets Aimed Example"
+SCREEN_TITLE = "Timer Example"
 
 BULLET_SPEED = 7
 # MOVEMENT_SPEED = 5
 window = None
+
+class Coin(arcade.Sprite):
+    """
+    This class represents the coins on our screen. It is a child class of
+    the arcade library's "Sprite" class.
+    """
+
+    def reset_pos(self):
+
+        # Reset the coin to a random spot above the screen
+        self.center_y = random.randrange(SCREEN_HEIGHT + 20,
+                                         SCREEN_HEIGHT + 100)
+        self.center_x = random.randrange(SCREEN_WIDTH)
+
+    def update(self):
+
+        # Move the coin
+        self.center_y -= 1
+
+        # See if the coin has fallen off the bottom of the screen.
+        # If so, reset it.
+        if self.top < 0:
+            self.reset_pos()
+
 
 class ModelSprite(arcade.Sprite):
     def __init__(self, *args, **kwargs):
@@ -45,29 +70,6 @@ class ModelSprite(arcade.Sprite):
         elif self.top > SCREEN_HEIGHT - 1:
             self.top = SCREEN_HEIGHT - 1
 
-class Coin(arcade.Sprite):
-    """
-    This class represents the coins on our screen. It is a child class of
-    the arcade library's "Sprite" class.
-    """
-
-    def reset_pos(self):
-
-        # Reset the coin to a random spot above the screen
-        self.center_y = random.randrange(SCREEN_HEIGHT + 20,
-                                         SCREEN_HEIGHT + 100)
-        self.center_x = random.randrange(SCREEN_WIDTH)
-
-    def update(self):
-
-        # Move the coin
-        self.center_y -= 1
-
-        # See if the coin has fallen off the bottom of the screen.
-        # If so, reset it.
-        if self.top < 0:
-            self.reset_pos()
-
 class ZegoDotWindow(arcade.Window):
     def __init__(self):
         super().__init__(SCREEN_WIDTH,SCREEN_HEIGHT,SCREEN_TITLE)
@@ -78,6 +80,7 @@ class ZegoDotWindow(arcade.Window):
         self.frame_count = 0
         self.text_angle = 0
         self.time_elapsed = 0.0
+        self.total_time = 0.0
 
         self.background = None
 
@@ -86,14 +89,15 @@ class ZegoDotWindow(arcade.Window):
         self.bullet_list = None
         self.enemy_list = None
         self.player = None
-
+        self.box_list = None
         self.player_sprite = None
         self.score = 0
         self.score_text = None
 
         self.set_mouse_visible(False)
 
-        arcade.set_background_color(arcade.color.BABY_BLUE_EYES)
+        arcade.set_background_color(arcade.color.BABY_BLUE_EYES) 
+
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -103,8 +107,9 @@ class ZegoDotWindow(arcade.Window):
         self.coin_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
-
+        self.box_list = arcade.SpriteList()
         self.score = 0
+        self.total_time = 0.0
 
         self.player_sprite = ModelSprite("images/dot.png", SPRITE_SCALING_PLAYER)
         self.player_sprite.center_x = 50
@@ -139,6 +144,7 @@ class ZegoDotWindow(arcade.Window):
             # Add the coin to the lists
             self.coin_list.append(coin)
         
+        
         arcade.set_background_color(arcade.color.BABY_BLUE_EYES)
         
 
@@ -165,6 +171,18 @@ class ZegoDotWindow(arcade.Window):
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
 
+        # Calculate minutes
+        minutes = int(self.total_time) // 60
+
+        # Calculate seconds by using a modulus (remainder)
+        seconds = int(self.total_time) % 60
+
+        # Figure out our output
+        output = f"Time: {minutes:02d}:{seconds:02d}"
+
+        # Output the timer text.
+        arcade.draw_text(output, 350, 560, arcade.color.WHITE, 14)
+
     def update(self, delta_time):
         """ Movement and game logic """
         self.player_list.update()
@@ -173,38 +191,54 @@ class ZegoDotWindow(arcade.Window):
 
         self.text_angle += 1
         self.time_elapsed += delta_time
+        self.total_time += delta_time
 
         hit_list = arcade.check_for_collision_with_list(self.player_sprite,
                                                         self.coin_list)
-        if self.enemy_list[0].center_x>=0:
-            self.enemy_list[0].center_x-=1
-        else:
-            self.enemy_list[0].center_x = 800
+        # if self.enemy_list[0].center_x>=0:
+        #     self.enemy_list[0].center_x-=1
+        # else:
+        #     self.enemy_list[0].center_x = 800
         
-        if self.enemy_list[1].center_x>=0:
-            self.enemy_list[1].center_x-=2
-        else:
-            self.enemy_list[1].center_x = 800
+        # if self.enemy_list[1].center_x>=0:
+        #     self.enemy_list[1].center_x-=2
+        # else:
+        #     self.enemy_list[1].center_x = 800
         
+        for enemy in self.enemy_list:
+            if enemy.center_x >= -80:
+                enemy.center_x-=1
+            else:
+                enemy.center_x = 800
 
         for bullet in self.bullet_list:
 
             # Check this bullet to see if it hit a coin
             hit_list = arcade.check_for_collision_with_list(bullet, self.coin_list)
+            hit_enemy_list = arcade.check_for_collision_with_list(bullet,self.enemy_list)
 
             # If it did, get rid of the bullet
             if len(hit_list) > 0:
                 bullet.kill()
-
+            
+            # If it did, get rid of the bullet
+            if len(hit_enemy_list) > 0:
+                bullet.kill()
+            
             # For every coin we hit, add to the score and remove the coin
             for coin in hit_list:
                 coin.kill()
                 self.score += 1
 
+            for enemy in hit_enemy_list:
+                # enemy.kill()
+                enemy.center_x = random.randint(880,950)
+
             # If the bullet flies off-screen, remove it.
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.kill()
 
+        
          # Loop through each enemy that we have
         for enemy in self.enemy_list:
 
