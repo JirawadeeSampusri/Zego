@@ -89,10 +89,12 @@ class ZegoDotWindow(arcade.Window):
         self.enemy_list = None
         self.player = None
         self.box_list = None
-
+        
+        
         self.player_sprite = None
         self.score = 0
         self.score_text = None
+        self.blood = 220
 
         self.set_mouse_visible(False)
 
@@ -106,6 +108,7 @@ class ZegoDotWindow(arcade.Window):
         self.player_list = arcade.SpriteList()
         self.coin_sprite_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
+        self.blue_bullet_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
         self.box_list = arcade.SpriteList()
 
@@ -116,6 +119,7 @@ class ZegoDotWindow(arcade.Window):
         self.player_sprite.center_x = 50
         self.player_sprite.center_y = 70
         self.player_list.append(self.player_sprite)
+
 
         #add 1st ships
         enemy = arcade.Sprite("images/enermy.png", 0.5)
@@ -165,6 +169,7 @@ class ZegoDotWindow(arcade.Window):
         self.enemy_list.draw()
         self.coin_sprite_list.draw()
         self.bullet_list.draw()
+        self.blue_bullet_list.draw()
         self.player_list.draw()
         arcade.draw_text("Welcome to Zego", start_x, start_y,
                          arcade.color.BLACK, 14, width=200, align="center",
@@ -172,6 +177,13 @@ class ZegoDotWindow(arcade.Window):
         
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, 20, arcade.color.WHITE, 14)
+
+        # Blood 
+        self.blood_sprite = ModelSprite(f"blood/b{self.blood//10}.png", 0.5)
+        self.blood_sprite.center_x = 400
+        self.blood_sprite.center_y = 545
+
+        self.blood_sprite.draw()
 
         # Calculate minutes
         minutes = int(self.total_time) // 60
@@ -191,6 +203,7 @@ class ZegoDotWindow(arcade.Window):
         self.player_list.update()
         self.coin_sprite_list.update()
         self.bullet_list.update()
+        self.blue_bullet_list.update()
 
         self.text_angle += 1
         self.time_elapsed += delta_time
@@ -201,41 +214,23 @@ class ZegoDotWindow(arcade.Window):
         for coin in hit_list:
             coin.kill()
             self.score +=1
-        # if self.enemy_list[0].center_x>=0:
-        #     self.enemy_list[0].center_x-=1
-        # else:
-        #     self.enemy_list[0].center_x = 800
-        
-        # if self.enemy_list[1].center_x>=0:
-        #     self.enemy_list[1].center_x-=2
-        # else:
-        #     self.enemy_list[1].center_x = 800
-        
+
         for enemy in self.enemy_list:
             if enemy.center_x >= -80:
                 enemy.center_x-=1
             else:
                 enemy.center_x = 800
 
-        for bullet in self.bullet_list:
+        for bullet in self.blue_bullet_list:
 
             # Check this bullet to see if it hit a coin
-        #    hit_lis t = arcade.check_for_collision_with_list(bullet, self.coin_sprite_list)
             hit_enemy_list = arcade.check_for_collision_with_list(bullet,self.enemy_list)
 
-            # If it did, get rid of the bullet
-            # if len(hit_list) > 0:
-            #     bullet.kill()
             
             # If it did, get rid of the bullet
             if len(hit_enemy_list) > 0:
                 bullet.kill()
             
-            # For every coin we hit, add to the score and remove the coin
-            # for coin in hit_list:
-            #     coin.kill()
-            #     self.score += 1
-
             for enemy in hit_enemy_list:
                 # enemy.kill()
                 enemy.center_x = random.randint(880,950)
@@ -256,6 +251,8 @@ class ZegoDotWindow(arcade.Window):
                 bullet.top = enemy.bottom
                 bullet.change_y = -2
                 self.bullet_list.append(bullet)
+            
+            
 
         # Get rid of the bullet when it flies off-screen
         for bullet in self.bullet_list:
@@ -263,6 +260,20 @@ class ZegoDotWindow(arcade.Window):
                 bullet.kill()
 
         self.bullet_list.update()
+
+        bullet_hit_player = arcade.check_for_collision_with_list(self.player_sprite, self.bullet_list)
+        for b in bullet_hit_player:
+            if bullet_hit_player:
+                b.kill()
+                self.blood -= 10
+                if self.blood >1 :
+                    if self.blood <= 0:
+                        self.player_sprite.kill()
+                        self.blue_bullet_list.remove
+                else:
+                    quit()
+                
+                
 
     def on_mouse_motion(self, x, y, dx, dy):
         """
@@ -296,7 +307,7 @@ class ZegoDotWindow(arcade.Window):
         bullet.change_y = BULLET_SPEED
 
         # Add the bullet to the appropriate lists
-        self.bullet_list.append(bullet)
+        self.blue_bullet_list.append(bullet)
 
 def main():
     """ Main method """
