@@ -19,6 +19,10 @@ BULLET_SPEED = 10
 MOVEMENT_SPEED = 7
 window = None
 
+state = {'game':0,
+         'dead':1
+}
+
 class Coin(arcade.Sprite):
     """
     This class represents the coins on our screen. It is a child class of
@@ -99,7 +103,8 @@ class ZegoDotWindow(arcade.Window):
 
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
- 
+
+        self.state = 0
         self.frame_count = 0
         self.text_angle = 0
         self.time_elapsed = 0.0
@@ -141,6 +146,7 @@ class ZegoDotWindow(arcade.Window):
 
         self.score = 0
         self.total_time = 0.0
+        self.blood = 220
 
         self.player_sprite = ModelSprite("images/dot.png", SPRITE_SCALING_PLAYER)
         self.player_sprite.center_x = 50
@@ -248,6 +254,8 @@ class ZegoDotWindow(arcade.Window):
 
     def update(self, delta_time):
         """ Movement and game logic """
+        if self.state == 1:
+            return
 
         self.player_list.update()
         self.coin_sprite_list.update()
@@ -265,7 +273,7 @@ class ZegoDotWindow(arcade.Window):
 
         
             for coin in hit_list:
-                coin.kill()
+                coin.reset_pos()
                 self.score +=1
 
         for gift in self.gift_sprite_list:
@@ -273,7 +281,7 @@ class ZegoDotWindow(arcade.Window):
             hit_gift = arcade.check_for_collision_with_list(self.player_sprite,self.gift_sprite_list)
 
             for gift in hit_gift:
-                gift.kill()
+                gift.reset_pos()
                 self.score += 5
 
         for enemy in self.enemy_list:
@@ -294,7 +302,7 @@ class ZegoDotWindow(arcade.Window):
             
             for enemy in hit_enemy_list:
                 # enemy.kill()
-                enemy.center_x = random.randint(880,950)
+                enemy.center_x = random.randint(880,1300)
 
             # If the bullet flies off-screen, remove it.
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
@@ -332,15 +340,20 @@ class ZegoDotWindow(arcade.Window):
                         self.player_sprite.kill()
                         self.blue_bullet_list.remove
                 else:
-                    quit()
-                
+                    self.state = 1        
                 
 
+    def on_key_press(self, key, key_modifiers):
+        if key == arcade.key.R and self.state == 1:
+            self.setup()
+            self.state = 0 
+                                    
     def on_mouse_motion(self, x, y, dx, dy):
         """
         Called whenever the mouse moves.
         """
-        self.player_sprite.center_x = x
+        if self.state == 0:
+            self.player_sprite.center_x = x
 
     def on_mouse_press(self, x, y, button, modifiers):
         """
