@@ -64,8 +64,7 @@ class Gift(arcade.Sprite):
         # If so, reset it.
         if self.top < 0:
             self.reset_pos()
-
-
+      
 class ModelSprite(arcade.Sprite):
     def __init__(self, *args, **kwargs):
         self.model = kwargs.pop('model', None)
@@ -260,17 +259,22 @@ class ZegoDotWindow(arcade.Window):
         self.time_elapsed += delta_time
         self.total_time += delta_time
 
-        hit_list = arcade.check_for_collision_with_list(self.player_sprite,
-                                                        self.coin_sprite_list)
-        hit_gift = arcade.check_for_collision_with_list(self.player_sprite,self.gift_sprite_list)
+        for coin in self.coin_sprite_list:
+            hit_list = arcade.check_for_collision_with_list(self.player_sprite,
+                                                            self.coin_sprite_list)
 
-        for coin in hit_list:
-            coin.kill()
-            self.score +=1
+        
+            for coin in hit_list:
+                coin.kill()
+                self.score +=1
 
-        for gift in hit_gift:
-            gift.kill()
-            self.score += 5
+        for gift in self.gift_sprite_list:
+
+            hit_gift = arcade.check_for_collision_with_list(self.player_sprite,self.gift_sprite_list)
+
+            for gift in hit_gift:
+                gift.kill()
+                self.score += 5
 
         for enemy in self.enemy_list:
             if enemy.center_x >= -80:
