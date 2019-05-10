@@ -13,15 +13,16 @@ GIFT_COUNT = 3
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Game Example"
+SCREEN_TITLE = "Zego"
 
 BULLET_SPEED = 10
 MOVEMENT_SPEED = 7
 window = None
 
 state = {'game':0,
-         'dead':1
-}
+         'dead':1,
+         'start':2
+         }
 
 class Coin(arcade.Sprite):
     """
@@ -41,8 +42,6 @@ class Coin(arcade.Sprite):
         # Move the coin
         self.center_y -= 1
 
-        # See if the coin has fallen off the bottom of the screen.
-        # If so, reset it.
         if self.top < 0:
             self.reset_pos()
 
@@ -61,11 +60,9 @@ class Gift(arcade.Sprite):
 
     def update(self):
 
-        # Move the coin
+        # Move the gift
         self.center_y -= 1
 
-        # See if the coin has fallen off the bottom of the screen.
-        # If so, reset it.
         if self.top < 0:
             self.reset_pos()
       
@@ -99,13 +96,17 @@ class ModelSprite(arcade.Sprite):
 
 class ZegoDotWindow(arcade.Window):
     def __init__(self):
+        # STATE_FROZEN = 1
+        # STATE_STARTED = 2
+        # STATE_DEAD = 3
+
         super().__init__(SCREEN_WIDTH,SCREEN_HEIGHT,SCREEN_TITLE)
 
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
 
         self.state = 0
-        self.frame_count = 0
+        # self.frame_count = 0 
         self.text_angle = 0
         self.time_elapsed = 0.0
         self.total_time = 0.0
@@ -129,8 +130,8 @@ class ZegoDotWindow(arcade.Window):
 
         self.set_mouse_visible(False)
 
-        arcade.set_background_color(arcade.color.BABY_BLUE_EYES) 
-
+        arcade.set_background_color(arcade.color.BABY_BLUE_EYES)
+    
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -178,28 +179,26 @@ class ZegoDotWindow(arcade.Window):
 
         for i in range(COIN_COUNT):
 
-            # Create the coin instance
-            # Coin image from kenney.nl
+            
             coin = Coin("images/coin_01.png", SPRITE_SCALING_COIN)
 
-            # Position the coin
+     
             coin.center_x = random.randrange(SCREEN_WIDTH)
             coin.center_y = random.randrange(120,SCREEN_HEIGHT)
 
-            # Add the coin to the lists
+    
             self.coin_sprite_list.append(coin)
 
         for i in range(GIFT_COUNT):
 
-            # Create the coin instance
-            # Coin image from kenney.nl
+  
             gift = Gift("images/gift.png", SPRITE_SCALING_GIFT)
 
-            # Position the coin
+      
             coin.center_x = random.randrange(SCREEN_WIDTH)
             coin.center_y = random.randrange(120,SCREEN_HEIGHT)
 
-            # Add the coin to the lists
+
             self.gift_sprite_list.append(gift)
         
         
@@ -215,6 +214,7 @@ class ZegoDotWindow(arcade.Window):
 
         start_y = 200
         start_x = 20
+        
         arcade.draw_point(start_x, start_y, arcade.color.BLUE, 5)
 
         arcade.draw_texture_rectangle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
@@ -229,7 +229,8 @@ class ZegoDotWindow(arcade.Window):
         arcade.draw_text("Welcome to Zego", start_x, start_y,
                          arcade.color.BLACK, 14, width=200, align="center",
                          anchor_x="center", anchor_y="center", rotation=90.0)
-        
+        if self.state == 0:
+            arcade.draw_text("Press SPACE to start",250,SCREEN_HEIGHT//2,arcade.color.BLACK,30)
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, 20, arcade.color.BLACK, 12)
 
@@ -254,7 +255,7 @@ class ZegoDotWindow(arcade.Window):
 
     def update(self, delta_time):
         """ Movement and game logic """
-        if self.state == 1:
+        if self.state == 0 or self.state == 2:
             return
 
         self.player_list.update()
@@ -292,11 +293,9 @@ class ZegoDotWindow(arcade.Window):
 
         for bullet in self.blue_bullet_list:
 
-            # Check this bullet to see if it hit a coin
+  
             hit_enemy_list = arcade.check_for_collision_with_list(bullet,self.enemy_list)
-
-            
-            # If it did, get rid of the bullet
+          
             if len(hit_enemy_list) > 0:
                 bullet.kill()
             
@@ -304,15 +303,12 @@ class ZegoDotWindow(arcade.Window):
                 # enemy.kill()
                 enemy.center_x = random.randint(880,1300)
 
-            # If the bullet flies off-screen, remove it.
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.kill()
 
         
-         # Loop through each enemy that we have
         for enemy in self.enemy_list:
 
-            # Have a random 1 in 200 change of shooting each frame
             if random.randrange(100) == 0:
                 bullet = arcade.Sprite("images/laser4.png")
                 bullet.center_x = enemy.center_x
@@ -321,9 +317,6 @@ class ZegoDotWindow(arcade.Window):
                 bullet.change_y = -2
                 self.bullet_list.append(bullet)
             
-            
-
-        # Get rid of the bullet when it flies off-screen
         for bullet in self.bullet_list:
             if bullet.top < 0:
                 bullet.kill()
@@ -340,19 +333,23 @@ class ZegoDotWindow(arcade.Window):
                         self.player_sprite.kill()
                         self.blue_bullet_list.remove
                 else:
-                    self.state = 1        
+                    self.state = 2        
                 
 
     def on_key_press(self, key, key_modifiers):
-        if key == arcade.key.R and self.state == 1:
+        if key == arcade.key.R and self.state == 2:
             self.setup()
-            self.state = 0 
-                                    
+            self.state = 0
+        if key == arcade.key.SPACE:
+            if self.state != 2 and self.state == 0:
+                self.state =1    
+       
     def on_mouse_motion(self, x, y, dx, dy):
         """
         Called whenever the mouse moves.
         """
-        if self.state == 0:
+
+        if self.state == 1:
             self.player_sprite.center_x = x
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -360,6 +357,10 @@ class ZegoDotWindow(arcade.Window):
         Called whenever the mouse moves.
         """
         # Create a bullet
+        if button == arcade.key.SPACE:
+            if self.state != 2 and self.state == 0:
+                self.state =1
+
         bullet = arcade.Sprite("images/bluelaser2.png", SPRITE_SCALING_LASER)
 
         start_x = self.player_sprite.center_x
@@ -380,7 +381,6 @@ class ZegoDotWindow(arcade.Window):
         
         bullet.change_y = BULLET_SPEED
 
-        # Add the bullet to the appropriate lists
         self.blue_bullet_list.append(bullet)
 
 def main():

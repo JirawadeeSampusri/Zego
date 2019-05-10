@@ -70,12 +70,15 @@ class ModelSprite(arcade.Sprite):
             self.top = SCREEN_HEIGHT - 1
 
 class ZegoDotWindow(arcade.Window):
+    STATE_FROZEN = 1
+    STATE_BEGIN = 2
+    STATE_DEAD = 3
     def __init__(self):
         super().__init__(SCREEN_WIDTH,SCREEN_HEIGHT,SCREEN_TITLE)
 
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
- 
+        self.state = World.STATE_FROZEN
         self.frame_count = 0
         self.text_angle = 0
         self.time_elapsed = 0.0
@@ -286,6 +289,8 @@ class ZegoDotWindow(arcade.Window):
         Called whenever the mouse moves.
         """
         # Create a bullet
+        if not self.world.is_dead():
+            self.world.start()
         bullet = arcade.Sprite("images/bluelaser2.png", SPRITE_SCALING_LASER)
 
         start_x = self.player_sprite.center_x
@@ -308,6 +313,21 @@ class ZegoDotWindow(arcade.Window):
 
         # Add the bullet to the appropriate lists
         self.blue_bullet_list.append(bullet)
+    
+    def start(self):
+        self.state = World.STATE_STARTED
+
+    def freeze(self):
+        self.state = World.STATE_FROZEN
+
+    def is_started(self):
+        return self.state == World.STATE_STARTED
+
+    def die(self):
+        self.state = World.STATE_DEAD
+
+    def is_dead(self):
+        return self.state == World.STATE_DEAD
 
 def main():
     """ Main method """
